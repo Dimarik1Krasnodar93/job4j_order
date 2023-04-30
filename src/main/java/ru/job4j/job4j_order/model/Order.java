@@ -3,6 +3,7 @@ package ru.job4j.job4j_order.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 @Getter
 @Setter
