@@ -2,10 +2,11 @@ package ru.job4j.job4j_order.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonAppend;
-import com.fasterxml.jackson.databind.util.JSONPObject;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import lombok.AllArgsConstructor;
 import org.springframework.http.*;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -15,6 +16,7 @@ import ru.job4j.job4j_order.model.Order;
 import ru.job4j.job4j_order.model.Status;
 import ru.job4j.job4j_order.repository.OrderRepository;
 
+import java.util.Map;
 import java.util.Properties;
 
 @AllArgsConstructor
@@ -28,11 +30,22 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            kafkaTemplate.send("job4j_orders2", objectMapper.writeValueAsString(order));
+            kafkaTemplate.send("job4j_orders_1", objectMapper.writeValueAsString(savedOrder));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
         return savedOrder;
+    }
+
+    @KafkaListener(topics = "cooked_order")
+    public void receiveOrder(String orderStr) {
+        Gson gson = new GsonBuilder().create();
+        Map<String, Object> map = gson.fromJson(orderStr, Map.class);
+        Order order = orderRepository.findById(((Double) map.get("id")).intValue());
+        if (order != null && "CANCEL".equals(map.get("status"))) {
+            order.setCancelled(true);
+            orderRepository.save(order);
+        }
     }
 
     public Status getStatus(int orderId) {

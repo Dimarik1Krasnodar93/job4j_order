@@ -18,13 +18,25 @@ public class OrderRepositoryMem implements OrderRepository {
     private static int count = 0;
     @Override
     public Order save(Order order) {
-        order.setId(count);
-        orders.add(order);
+        if (order.getId() == 0) {
+            order.setId(++count);
+            orders.add(order);
+        }
         return order;
     }
 
     @Override
     public Status getStatus(int orderId) {
-        return orders.stream().filter(i -> i.getId() == orderId).findFirst().orElseThrow().getStatus();
+        return findById(orderId).getStatus();
+    }
+
+    @Override
+    public Order findById(int orderId) {
+        return orders.stream().filter(i -> i.getId() == orderId).findFirst().orElse(null);
+    }
+
+    @Override
+    public List<Order> findAll() {
+        return orders;
     }
 }

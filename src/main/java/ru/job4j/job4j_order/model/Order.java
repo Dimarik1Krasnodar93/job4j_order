@@ -10,6 +10,8 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 @AllArgsConstructor
 public class Order {
     private int id;
+    private int dishId;
     private String name;
     private Status status;
+    private boolean cancelled;
 }
