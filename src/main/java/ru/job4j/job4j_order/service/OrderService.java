@@ -29,11 +29,7 @@ public class OrderService {
     public Order createOrder(Order order) {
         Order savedOrder = orderRepository.save(order);
         ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            kafkaTemplate.send("job4j_orders_1", objectMapper.writeValueAsString(savedOrder));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        kafkaTemplate.send("job4j_orders_2", savedOrder);
         return savedOrder;
     }
 
